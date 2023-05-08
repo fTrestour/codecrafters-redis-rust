@@ -1,6 +1,7 @@
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
+    thread, time,
 };
 
 fn main() {
@@ -10,7 +11,9 @@ fn main() {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => handle_connection(stream),
+            Ok(stream) => {
+                thread::spawn(|| handle_connection(stream));
+            }
             Err(e) => {
                 println!("error: {}", e);
             }
@@ -32,6 +35,12 @@ fn handle_connection(mut stream: TcpStream) {
             println!("Closing connection");
             break;
         }
+
+        println!("Received message!");
+
+        // Adding a delay to allow plugging 2 concurrent connections
+        let delay = time::Duration::from_secs(2);
+        thread::sleep(delay);
 
         stream.write_all(b"+PONG\r\n").expect("Could not respond")
     }
