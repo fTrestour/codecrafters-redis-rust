@@ -1,25 +1,27 @@
-use crate::protocol::Resp;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
-pub fn compute_response(message: Resp) -> Resp {
-    match message {
-        Resp::SimpleString(_) => Resp::pong(),
+use crate::{command::Command, protocol::Resp};
 
-        Resp::BulkString(_) => Resp::pong(),
+pub fn run_command(command: Command, store: &Arc<Mutex<HashMap<String, String>>>) -> Resp {
+    match command {
+        Command::Ping => Resp::pong(),
+        Command::Echo(s) => Resp::BulkString(String::from(s)),
+        Command::Set(k, v) => {
+            let mut store = store.lock().unwrap();
+            store.insert(k, v);
 
-        Resp::Array(a) => {
-            let mut result = Resp::pong();
-
-            let first = a.get(0).expect("Received empty array");
-            if let Resp::BulkString(s) = first {
-                if s.eq(&"ECHO") {
-                    let second = a.get(1).expect("Received size 1 array");
-
-                    if let Resp::BulkString(second) = second {
-                        result = Resp::SimpleString(second);
-                    }
-                }
+            return Resp::ok();
+        }
+        Command::Get(k) => {
+            let store = store.lock().unwrap();
+            let v = store.get(&k);
+            match v {
+                Some(v) => return Resp::SimpleString(v.to_owned()),
+                None => todo!(),
             };
-            result
         }
     }
 }

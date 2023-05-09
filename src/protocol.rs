@@ -1,57 +1,41 @@
 #[derive(Debug)]
-pub enum Resp<'a> {
-    SimpleString(&'a str),
-    // Error(&'a str),
-    // Integer(&'a i64),
-    BulkString(&'a str),
-    Array(Vec<Resp<'a>>),
+pub enum Resp {
+    SimpleString(String),
+    // Error(String),
+    // Integer(&i64),
+    BulkString(String),
+    Array(Vec<Resp>),
 }
 
-impl Resp<'_> {
-    pub fn pong() -> Resp<'static> {
-        Resp::SimpleString("PONG")
+impl Resp {
+    pub fn pong() -> Resp {
+        Resp::SimpleString(String::from("PONG"))
     }
 
-    pub fn from_str<'a>(s: &'a str) -> Resp<'a> {
+    pub fn ok() -> Resp {
+        Resp::SimpleString(String::from("OK"))
+    }
+
+    pub fn from(s: &str) -> Resp {
         Self::parse(s).0
     }
 
-    pub fn to_str(&self) -> String {
+    pub fn to_string(&self) -> String {
         match self {
-            Resp::SimpleString(s) => {
-                let mut result = String::new();
-                result.push_str("+");
-
-                result.push_str(&s);
-                result.push_str(CRLF);
-                result
-            }
+            Resp::SimpleString(s) => format!("+{s}{CRLF}"),
             Resp::BulkString(s) => {
-                let mut result = String::new();
-                result.push_str("$");
-
-                result.push_str(&s.len().to_string());
-                result.push_str(CRLF);
-
-                result.push_str(&s);
-                result.push_str(CRLF);
-
-                result
+                let size = s.len();
+                return format!("${size}{CRLF}{s}{CRLF}");
             }
             Resp::Array(a) => {
-                let mut result: String = String::new();
-                result.push_str("*");
-
-                result.push_str(&a.len().to_string());
-                result.push_str(CRLF);
+                let size = a.len();
+                let mut result = format!("*{size}{CRLF}");
 
                 for element in a {
-                    let s = element.to_str();
-                    result.push_str(&s);
-                    result.push_str(CRLF);
+                    result += &(element.to_string() + CRLF);
                 }
 
-                result
+                return result;
             }
         }
     }
@@ -62,13 +46,13 @@ impl Resp<'_> {
         if prefix.eq("+") {
             let (value, rest) = split_once_on_crlf(value);
 
-            return (Resp::SimpleString(value), rest);
+            return (Resp::SimpleString(value.to_owned()), rest);
         } else if prefix.eq("$") {
             let (_, value) = split_once_on_crlf(value);
 
             let (value, rest) = split_once_on_crlf(value);
 
-            return (Resp::BulkString(value), rest);
+            return (Resp::BulkString(value.to_owned()), rest);
         } else if prefix.eq("*") {
             let (size, mut value) = split_once_on_crlf(value);
 
@@ -85,7 +69,7 @@ impl Resp<'_> {
 
             return (Resp::Array(array), rest);
         } else {
-            return (Resp::SimpleString("PONG"), "");
+            return (Resp::SimpleString(String::from("PONG")), "");
         }
     }
 }
