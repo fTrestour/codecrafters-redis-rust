@@ -9,7 +9,7 @@ use std::{
 
 pub fn handle(
     stream: TcpStream,
-    store: &Arc<Mutex<HashMap<String, String>>>,
+    store: Arc<Mutex<HashMap<String, String>>>,
     callback: fn(Command, &Arc<Mutex<HashMap<String, String>>>) -> Resp,
 ) {
     println!("Accepted new connection");

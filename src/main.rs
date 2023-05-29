@@ -18,7 +18,7 @@ fn main() {
         let store = store.clone();
         match stream {
             Ok(stream) => {
-                thread::spawn(move || connection::handle(stream, &store, logic::run_command));
+                thread::spawn(move || connection::handle(stream, store, logic::run_command));
             }
             Err(e) => {
                 println!("error: {}", e);
