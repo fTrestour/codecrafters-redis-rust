@@ -1,6 +1,5 @@
-use crate::{command::Command, protocol::Resp};
+use crate::{command::Command, protocol::Resp, store::Store};
 use std::{
-    collections::HashMap,
     io::{Read, Write},
     net::TcpStream,
     str,
@@ -9,8 +8,8 @@ use std::{
 
 pub fn handle(
     stream: TcpStream,
-    store: Arc<Mutex<HashMap<String, String>>>,
-    callback: fn(Command, &Arc<Mutex<HashMap<String, String>>>) -> Resp,
+    store: Arc<Mutex<Store>>,
+    callback: fn(Command, &Arc<Mutex<Store>>) -> Resp,
 ) {
     println!("Accepted new connection");
     let mut buf: [u8; 512] = [0; 512];
