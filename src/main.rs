@@ -1,5 +1,6 @@
 mod command;
 mod connection;
+mod expiry;
 mod logic;
 mod protocol;
 mod store;
