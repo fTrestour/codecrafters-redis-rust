@@ -43,34 +43,34 @@ impl Resp {
     fn parse(s: &str) -> (Resp, &str) {
         let (prefix, value) = s.split_at(1);
 
-        if prefix.eq("+") {
-            let (value, rest) = split_once_on_crlf(value);
-
-            return (Resp::SimpleString(value.to_owned()), rest);
-        } else if prefix.eq("$") {
-            let (_, value) = split_once_on_crlf(value);
-
-            let (value, rest) = split_once_on_crlf(value);
-
-            return (Resp::BulkString(value.to_owned()), rest);
-        } else if prefix.eq("*") {
-            let (size, mut value) = split_once_on_crlf(value);
-
-            let size: i32 = size.parse().expect("Could not parse string");
-
-            let rest = "";
-            let mut array = Vec::<Resp>::new();
-            for _ in 0..size {
-                let parsed: (Resp, &str) = Resp::parse(value);
-
-                array.push(parsed.0);
-                value = parsed.1;
+        match prefix {
+            "+" => {
+                let (value, rest) = split_once_on_crlf(value);
+                return (Resp::SimpleString(value.to_owned()), rest);
             }
+            "$" => {
+                let (_, value) = split_once_on_crlf(value);
+                let (value, rest) = split_once_on_crlf(value);
+                return (Resp::BulkString(value.to_owned()), rest);
+            }
+            "*" => {
+                let (size, mut value) = split_once_on_crlf(value);
 
-            return (Resp::Array(array), rest);
-        } else {
-            return (Resp::SimpleString(String::from("PONG")), "");
-        }
+                let size: i32 = size.parse().expect("Could not parse string");
+
+                let rest = "";
+                let mut array = Vec::<Resp>::new();
+                for _ in 0..size {
+                    let parsed: (Resp, &str) = Resp::parse(value);
+
+                    array.push(parsed.0);
+                    value = parsed.1;
+                }
+
+                return (Resp::Array(array), rest);
+            }
+            _ => return (Resp::SimpleString(String::from("PONG")), ""),
+        };
     }
 }
 

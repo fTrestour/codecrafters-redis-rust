@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+#[derive(Debug)]
 pub enum Expiry {
     Infinity,
     ExpiresAt(Instant),

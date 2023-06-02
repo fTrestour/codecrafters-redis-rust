@@ -6,9 +6,9 @@ pub fn run_command(command: Command, store: &Arc<Mutex<Store>>) -> Resp {
     match command {
         Command::Ping => Resp::pong(),
         Command::Echo(s) => Resp::BulkString(String::from(s)),
-        Command::Set(k, v) => {
+        Command::Set(k, v, expiry) => {
             let mut store = store.lock().unwrap();
-            store.set(k, v);
+            store.set(k, v, expiry);
 
             return Resp::ok();
         }
