@@ -21,12 +21,14 @@ impl Store {
     }
 
     pub fn get(&self, k: String) -> Option<String> {
-        return self.data.get(&k).and_then(|(v, expiry)| {
-            if expiry.is_expired() {
-                return None;
-            }
+        let (v, expiry) = self.data.get(&k)?;
 
-            return Some(v.clone());
-        });
+        if expiry.is_expired() {
+            println!("Value for key {k} is expired");
+            return None;
+        }
+
+        println!("Value for key {k} is {v}");
+        return Some(v.clone());
     }
 }
