@@ -2,9 +2,8 @@ use std::collections::HashMap;
 
 use crate::expiry::Expiry;
 
-pub type Key = String;
-pub type Value = (String, Expiry);
-
+type Key = String;
+type Value = (String, Expiry);
 pub struct Store {
     data: HashMap<Key, Value>,
 }
