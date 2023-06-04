@@ -17,6 +17,7 @@ impl Store {
     }
 
     pub fn set(&mut self, k: String, v: String, expiry: Expiry) -> () {
+        println!("Value {v} set for key {k}");
         self.data.insert(k, (v, expiry));
     }
 

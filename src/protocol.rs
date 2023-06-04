@@ -1,10 +1,9 @@
 #[derive(Debug)]
 pub enum Resp {
     SimpleString(String),
-    // Error(String),
-    // Integer(&i64),
     BulkString(String),
     Array(Vec<Resp>),
+    Null,
 }
 
 impl Resp {
@@ -27,6 +26,7 @@ impl Resp {
                 let size = s.len();
                 return format!("${size}{CRLF}{s}{CRLF}");
             }
+            Resp::Null => format!("$-1{CRLF}"),
             Resp::Array(a) => {
                 let size = a.len();
                 let mut result = format!("*{size}{CRLF}");
@@ -45,16 +45,18 @@ impl Resp {
 
         match prefix {
             "+" => {
-                let (value, rest) = split_once_on_crlf(value);
+                let (value, rest) = Self::split_once_on_crlf(value);
                 return (Resp::SimpleString(value.to_owned()), rest);
             }
+
             "$" => {
-                let (_, value) = split_once_on_crlf(value);
-                let (value, rest) = split_once_on_crlf(value);
+                let (_, value) = Self::split_once_on_crlf(value);
+                let (value, rest) = Self::split_once_on_crlf(value);
                 return (Resp::BulkString(value.to_owned()), rest);
             }
+
             "*" => {
-                let (size, mut value) = split_once_on_crlf(value);
+                let (size, mut value) = Self::split_once_on_crlf(value);
 
                 let size: i32 = size.parse().expect("Could not parse string");
 
@@ -69,13 +71,14 @@ impl Resp {
 
                 return (Resp::Array(array), rest);
             }
+
             _ => return (Resp::SimpleString(String::from("PONG")), ""),
         };
+    }
+
+    fn split_once_on_crlf(s: &str) -> (&str, &str) {
+        s.split_once(CRLF).expect("Error parsing on CRLF")
     }
 }
 
 const CRLF: &str = "\r\n";
-
-fn split_once_on_crlf(s: &str) -> (&str, &str) {
-    s.split_once(CRLF).expect("Error parsing on CRLF")
-}

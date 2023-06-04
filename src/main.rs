@@ -22,8 +22,9 @@ fn main() {
             Ok(stream) => {
                 thread::spawn(move || connection::handle(stream, store, logic::run_command));
             }
+
             Err(e) => {
-                println!("error: {}", e);
+                println!("Error listening incoming stream: {}", e);
             }
         }
     }

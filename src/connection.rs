@@ -40,10 +40,10 @@ fn read(mut stream: &TcpStream, buf: &mut [u8]) -> Option<Command> {
 
     let message = str::from_utf8(buf).expect("Could not parse message");
     let message = Resp::from(message);
-    let command = Command::from_resp(message);
+    let command = Command::from_resp(message)?;
 
-    println!("Received {:?}", command);
-    return command;
+    println!("Received:\n{:#?}", command);
+    return Some(command);
 }
 
 fn send(mut stream: &TcpStream, message: Resp) {
@@ -51,5 +51,5 @@ fn send(mut stream: &TcpStream, message: Resp) {
     let payload = payload.as_bytes();
 
     stream.write_all(payload).expect("Could not respond");
-    println!("Sent {:?}", message);
+    println!("Sent:\n{:#?}", message);
 }
