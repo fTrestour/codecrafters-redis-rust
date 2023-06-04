@@ -17,8 +17,11 @@ pub fn handle(
     loop {
         let message = read(&stream, &mut buf);
         match message {
-            None => break,
-            Some(message) => {
+            Err(e) => {
+                println!("{:?}", e);
+                break;
+            }
+            Ok(message) => {
                 let response: Resp = callback(message, &store);
 
                 send(&stream, response);
@@ -29,27 +32,30 @@ pub fn handle(
     println!("Closing connection");
 }
 
-fn read(mut stream: &TcpStream, buf: &mut [u8]) -> Option<Command> {
+fn read(mut stream: &TcpStream, buf: &mut [u8]) -> Result<Command, &'static str> {
     let bytes_read = stream
         .read(buf)
-        .expect("Could not read bytes from connection");
+        .or(Err("Could not read bytes from connection"))?;
 
     if bytes_read == 0 {
-        return Option::None;
+        return Err("Received empty message");
     }
 
-    let message = str::from_utf8(buf).expect("Could not parse message");
-    let message = Resp::from(message);
-    let command = Command::from_resp(message)?;
+    let message = str::from_utf8(buf).or(Err("Could not parse message"))?;
+    let message = Resp::try_from(message)?;
+
+    let command = Command::try_from(message)?;
 
     println!("Received:\n{:#?}", command);
-    return Some(command);
+    return Ok(command);
 }
 
 fn send(mut stream: &TcpStream, message: Resp) {
-    let payload = message.to_string();
+    let payload = message.render();
     let payload = payload.as_bytes();
 
-    stream.write_all(payload).expect("Could not respond");
-    println!("Sent:\n{:#?}", message);
+    match stream.write_all(payload) {
+        Ok(_) => println!("Sent:\n{:#?}", message),
+        Err(_) => println!("Could not respond to command"),
+    };
 }
