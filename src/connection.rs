@@ -19,6 +19,7 @@ pub fn handle(
         match message {
             Err(e) => {
                 println!("{:?}", e);
+                send(&stream, Resp::Error(e.to_string()));
                 break;
             }
             Ok(message) => {

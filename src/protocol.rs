@@ -4,12 +4,13 @@ pub enum Resp {
     BulkString(String),
     Array(Vec<Resp>),
     Null,
+    Error(String),
 }
 
 impl TryFrom<&str> for Resp {
     type Error = &'static str;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> Result<Self, <Resp as TryFrom<&str>>::Error> {
         Ok(Self::parse(value)?.0)
     }
 }
@@ -26,6 +27,7 @@ impl Resp {
     pub fn render(&self) -> String {
         match self {
             Resp::SimpleString(s) => format!("+{s}{CRLF}"),
+            Resp::Error(s) => format!("-{s}{CRLF}"),
             Resp::BulkString(s) => {
                 let size = s.len();
                 return format!("${size}{CRLF}{s}{CRLF}");

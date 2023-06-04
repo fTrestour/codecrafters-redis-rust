@@ -19,6 +19,7 @@ impl TryFrom<Resp> for Command {
             Resp::SimpleString(_) | Resp::BulkString(_) => Err("Unexpected string"),
             Resp::Array(a) => Self::handle_command(&a),
             Resp::Null => Err("Unexpected null"),
+            Resp::Error(_) => Err("Unexpected error string"),
         }
     }
 }
